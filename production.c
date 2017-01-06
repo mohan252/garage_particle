@@ -3,9 +3,9 @@
 
 char auth[] = "e3ac4c915633434dbcb322fd5587f501";
 const int relay = D3;
-SparkCorePolledTimer updateTimer(20000); //Create a timer object and set it's timeout in milliseconds
+SparkCorePolledTimer updateTimer(20000); //Create a timer object and set it's timeout in milliseconds. one interval - 20 secs
 int timerCount = 0;
-int howLongCheckToGetStableReadingInMin = 5 * 3; // 15 20ms interval, // this will make door to open for 15 * 20 = 300 secs = 5 min
+int totalNoOfIntervalsToWait = 0;
 int (*action)(String) = NULL;
 
 void setup() {
@@ -19,7 +19,7 @@ void setup() {
 
 void triggerActionAfterIntervalElapsed(int noOfIntervalsToWait, int (*actionToExecute)(String)){
     action = actionToExecute;
-    howLongCheckToGetStableReadingInMin = noOfIntervalsToWait; // each interval is 20 ms
+    totalNoOfIntervalsToWait = noOfIntervalsToWait; // each interval is 20 ms
     triggerTimerToTakeAction(); 
 }
 
@@ -31,9 +31,9 @@ int activateDoor(String args){
 }
 
 int openClose(String args){
-    int minToWait = args.toInt();
+    int intervalsToWait = args.toInt();
     activateDoor(args);
-    triggerActionAfterIntervalElapsed(minToWait * 3,&activateDoor);
+    triggerActionAfterIntervalElapsed(intervalsToWait,&activateDoor);
 }
 
 void triggerTimerToTakeAction(){
@@ -42,7 +42,7 @@ void triggerTimerToTakeAction(){
 
 void timerCheck(){
     timerCount = timerCount + 1;
-    if(timerCount == howLongCheckToGetStableReadingInMin){ 
+    if(timerCount == totalNoOfIntervalsToWait){ 
         takeActionAndResetTimer("timer");
     }
 }
