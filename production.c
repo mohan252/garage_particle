@@ -5,7 +5,7 @@ char auth[] = "e3ac4c915633434dbcb322fd5587f501";
 const int relay = D3;
 SparkCorePolledTimer updateTimer(20000); //Create a timer object and set it's timeout in milliseconds. one interval - 20 secs
 int timerCount = 0;
-int totalNoOfIntervalsToWait = 0;
+int intervalsToKeepDoorOpen = 4; //4 * 20 = 80 secs
 int (*action)(String) = NULL;
 
 void setup() {
@@ -17,9 +17,8 @@ void setup() {
     Particle.function("openClose", openClose);
 }
 
-void triggerActionAfterIntervalElapsed(int noOfIntervalsToWait, int (*actionToExecute)(String)){
+void triggerActionAfterIntervalElapsed(int (*actionToExecute)(String)){
     action = actionToExecute;
-    totalNoOfIntervalsToWait = noOfIntervalsToWait; // each interval is 20 ms
     triggerTimerToTakeAction(); 
 }
 
@@ -31,9 +30,8 @@ int activateDoor(String args){
 }
 
 int openClose(String args){
-    int intervalsToWait = args.toInt();
     activateDoor(args);
-    triggerActionAfterIntervalElapsed(intervalsToWait,&activateDoor);
+    triggerActionAfterIntervalElapsed(&activateDoor);
 }
 
 void triggerTimerToTakeAction(){
@@ -42,7 +40,7 @@ void triggerTimerToTakeAction(){
 
 void timerCheck(){
     timerCount = timerCount + 1;
-    if(timerCount == totalNoOfIntervalsToWait){ 
+    if(timerCount == intervalsToKeepDoorOpen){ 
         takeActionAndResetTimer("timer");
     }
 }
